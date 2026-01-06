@@ -6,6 +6,8 @@ import {
 } from '@azure/functions';
 import FileSearch, { type FileSearchResult } from '../services/FileSearch';
 import FileParser, { type ParsedFiles } from '../services/FileParser';
+import DataTransformer, { type MeetingData } from '../services/DataTransformer';
+import ErrorResponse from '../util/ErrorResponse';
 
 export async function month(
     request: HttpRequest,
@@ -18,47 +20,41 @@ export async function month(
 
     let searchResult: FileSearchResult;
     let parsedFiles: ParsedFiles;
+    let meetingsData: MeetingData[];
 
+    const errorResponse = ErrorResponse(context);
     const fileSearch = FileSearch(context);
     const fileParser = FileParser(context);
+    const dataTransformer = DataTransformer(context);
 
     try {
         searchResult = await fileSearch.search(Number(year), Number(month));
-    } catch (err) {
-        context.error(err);
-        const _err = err instanceof Error ? err : new Error(String(err));
-        return {
-            status: 500,
-            jsonBody: {
-                error: `Failed to get JWPUB file for month = ${month}, year = ${year}`,
-                innerError: {
-                    message: _err.message,
-                    stack: _err.stack,
-                    name: _err.name
-                }
-            }
-        };
+    } catch (error) {
+        return errorResponse.fromError(
+            error,
+            `Failed to get JWPUB file for month = ${month}, year = ${year}`
+        );
     }
 
     try {
         parsedFiles = await fileParser.parse(searchResult);
-    } catch (err) {
-        context.error(err);
-        const _err = err instanceof Error ? err : new Error(String(err));
-        return {
-            status: 500,
-            jsonBody: {
-                error: `Failed to parse JWPUB files for month = ${month}, year = ${year}`,
-                innerError: {
-                    message: _err.message,
-                    stack: _err.stack,
-                    name: _err.name
-                }
-            }
-        };
+    } catch (error) {
+        return errorResponse.fromError(
+            error,
+            `Failed to parse JWPUB files for month = ${month}, year = ${year}`
+        );
     }
 
-    return { jsonBody: parsedFiles };
+    try {
+        meetingsData = dataTransformer.transform(parsedFiles);
+    } catch (error) {
+        return errorResponse.fromError(
+            error,
+            `Failed to transform JWPUB files for month = ${month}, year = ${year}`
+        );
+    }
+
+    return { jsonBody: meetingsData };
 }
 
 app.http('month', {
