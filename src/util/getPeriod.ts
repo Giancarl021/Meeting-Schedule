@@ -10,16 +10,11 @@ export default function getPeriod(
     month: number,
     delta: number = 0
 ) {
-    let y = year;
-    let m = month;
+    const d = new Date(year, month - 1);
+    d.setMonth(d.getMonth() + delta);
 
-    if (month + delta < 1) {
-        y -= 1;
-        m = 12 + (month + delta);
-    } else if (month + delta > 12) {
-        y += 1;
-        m = (month + delta) % 12;
-    }
+    let y = d.getFullYear();
+    let m = d.getMonth() + 1;
 
     const _m = constants.monthMap[m];
 

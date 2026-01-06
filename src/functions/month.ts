@@ -8,6 +8,7 @@ import FileSearch, { type FileSearchResult } from '../services/FileSearch';
 import FileParser, { type ParsedFiles } from '../services/FileParser';
 import DataTransformer, { type MeetingData } from '../services/DataTransformer';
 import ErrorResponse from '../util/ErrorResponse';
+import formatDate from '../util/formatDate';
 
 export async function month(
     request: HttpRequest,
@@ -54,7 +55,13 @@ export async function month(
         );
     }
 
-    return { jsonBody: parsedFiles };
+    return {
+        jsonBody: meetingsData.map(e => ({
+            ...e,
+            startDate: formatDate(e.startDate),
+            endDate: formatDate(e.endDate)
+        }))
+    };
 }
 
 app.http('month', {

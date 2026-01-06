@@ -1,4 +1,5 @@
 export default {
+    talkKey: (process.env.AYF_TALK_KEY || 'Talk').trim().toLowerCase(),
     monthMap: (
         process.env.MONTH_MAP ||
         'January,February,March,April,May,June,July,August,September,October,November,December'

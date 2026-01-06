@@ -1,5 +1,5 @@
 import type { HttpResponseInit } from '@azure/functions';
-import type Logger from '../interface/Logger';
+import type Logger from '../interfaces/Logger';
 
 export default function ErrorResponse(logger: Logger) {
     function fromError(error: unknown, message: string): HttpResponseInit {

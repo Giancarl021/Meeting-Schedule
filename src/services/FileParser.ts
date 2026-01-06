@@ -1,18 +1,20 @@
 import { loadPub } from 'meeting-schedules-parser';
-import type Logger from '../interface/Logger';
+import type Logger from '../interfaces/Logger';
 import type { FileSearchResult } from './FileSearch';
 
+type FieldIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
 type AyfFields =
-    | `mwb_ayf_part${number}`
-    | `mwb_ayf_part${number}_time`
-    | `mwb_ayf_part${number}_type`
-    | `mwb_ayf_part${number}_title`;
+    | `mwb_ayf_part${FieldIndex}`
+    | `mwb_ayf_part${FieldIndex}_time`
+    | `mwb_ayf_part${FieldIndex}_type`
+    | `mwb_ayf_part${FieldIndex}_title`;
 
 type LcFields =
-    | `mwb_lc_part${number}`
-    | `mwb_lc_part${number}_time`
-    | `mwb_lc_part${number}_title`
-    | `mwb_lc_part${number}_content`;
+    | `mwb_lc_part${FieldIndex}`
+    | `mwb_lc_part${FieldIndex}_time`
+    | `mwb_lc_part${FieldIndex}_title`
+    | `mwb_lc_part${FieldIndex}_content`;
 
 type DynamicFields = {
     [K in AyfFields]?: K extends `${string}_time` ? number : string;

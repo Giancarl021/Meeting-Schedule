@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 import constants from '../util/constants';
-import type Logger from '../interface/Logger';
+import type Logger from '../interfaces/Logger';
 import getPeriod, { type Period } from '../util/getPeriod';
 
 export interface FileSearchResult {
