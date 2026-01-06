@@ -1,4 +1,5 @@
 import type Logger from '../interface/Logger';
+import type { ParsedFiles } from './FileParser';
 
 export interface MeetingPart {
     title: string;
@@ -22,7 +23,7 @@ export interface MeetingData {
 }
 
 export default function DataTransformer(logger: Logger) {
-    function transform(data: any): MeetingData[] {
+    function transform(data: ParsedFiles): MeetingData[] {
         return [];
     }
 

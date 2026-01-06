@@ -54,7 +54,7 @@ export async function month(
         );
     }
 
-    return { jsonBody: meetingsData };
+    return { jsonBody: parsedFiles };
 }
 
 app.http('month', {
