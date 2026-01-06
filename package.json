@@ -17,11 +17,11 @@
     "meeting-schedules-parser": "^4.3.0"
   },
   "devDependencies": {
-    "@types/node": "18.x",
+    "@types/node": "22.x",
     "azure-functions-core-tools": "^4.x",
     "prettier": "^3.7.4",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
   },
-  "packageManager": "pnpm@11.0.0-dev.1005+sha512.91f84a392eea348ea4852a182912d2520273a4336f933b78cc44bc931eb999923c097e9433a9b355adc1f725725ea99082fc9f032a559df832632e764c92c798"
+  "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117"
 }
