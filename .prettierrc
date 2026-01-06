@@ -1,0 +1,22 @@
+{
+  "singleQuote": true,
+  "bracketSameLine": true,
+  "trailingComma": "none",
+  "tabWidth": 4,
+  "arrowParens": "avoid",
+  "overrides": [
+    {
+      "files": [
+        "*.yml",
+        "*.yaml",
+        "*.html",
+        "*.json",
+        "vite.config.ts",
+        ".prettierrc"
+      ],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ]
+}
