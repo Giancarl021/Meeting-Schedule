@@ -1,0 +1,12 @@
+{
+  "en": {
+    "monthMap": "January,February,March,April,May,June,July,August,September,October,November,December",
+    "ayf_talk_key": "Talk",
+    "search_lang": "en"
+  },
+  "pt_br": {
+    "monthMap": "Janeiro,Fevereiro,Março,Abril,Maio,Junho,Julho,Agosto,Setembro,Outubro,Novembro,Dezembro",
+    "ayf_talk_key": "Discurso",
+    "search_lang": "pt"
+  }
+}

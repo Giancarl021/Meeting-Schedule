@@ -1,0 +1,222 @@
+openapi: 3.0.1
+
+info:
+  title: Meeting Pull API
+  version: 0.1.0
+  contact:
+    name: Giancarlo Luz
+    url: https://github.com/Giancarl021/Meeting-Pull
+    email: gian.f.luz@hotmail.com
+  description: |
+    Azure Functions App to download Jehovah Witnesses meetings data and provide it in a simple format for easy integration. The data collected comes from the public website.
+
+servers:
+  - description: Local server
+    url: 'http://localhost:7071/api'
+
+tags:
+  - name: Schedule
+    description: Schedule related endpoints
+
+security:
+  - functionKeyHeader: []
+  - functionKeyQuery: []
+
+paths:
+  /schedule/{year}/{month}:
+    get:
+      operationId: getSchedule
+      summary: Get Schedule
+      parameters:
+        - $ref: '#/components/parameters/year'
+        - $ref: '#/components/parameters/month'
+      description: Get the schedule for an month based on Meeting Workbook and Watchtower Magazine data
+      tags:
+        - Schedule
+      responses:
+        '200':
+          $ref: '#/components/responses/MeetingData'
+        '500':
+          $ref: '#/components/responses/Error'
+
+components:
+  schemas:
+    ErrorResponse:
+      description: Error message showing what happened and where, with a broad message on top for user interface
+      type: object
+      required:
+        - error
+        - innerError
+      properties:
+        error:
+          type: string
+          description: A broad error message
+          example: 'Failed to get JWPUB file for month = 12, year = 2025'
+        innerError:
+          type: object
+          required:
+            - name
+            - message
+          properties:
+            name:
+              type: string
+              description: The type of the error
+              example: 'Error'
+            message:
+              type: string
+              description: Internal error message for debugging
+              example: 'Failed to fetch map file: 404 - Not Found'
+            stack:
+              type: string
+              description: The stack trace of the error
+              example: |
+                Error: Failed to fetch map file: 404 Not Found
+                  at /path/FileSearch.ts:83:19
+                  at processTicksAndRejections (node:internal/process/task_queues:96:5)
+                  at async FileSearch.fetchMapFile (/patth/FileSearch.ts:70:13)
+                  at async FileSearch.search (/path/FileSearch.ts:45:21)
+                  at async runFileSearch (/path/SearchFunction.ts:18:15)
+                  at async module.exports (/path/SearchFunction.ts:28:3)
+                  at async /usr/local/azure-functions-host/workers/node/worker-bundle.js:12345:17
+
+    MeetingPart:
+      description: Schedule data for meetings of a specific month
+      type: object
+      required:
+        - title
+        - durationMinutes
+      properties:
+        title:
+          type: string
+          description: The title of the part
+          example: 4. Starting a Conversation
+        durationMinutes:
+          type: number
+          description: The part duration in minutes
+          example: 4
+          format: int64
+        talk:
+          type: boolean
+          description: Wheter or not the part is a talk, only applies to Apply Yourself to the Field Ministry parts, otherwise omitted
+          example: true
+          enum:
+            - true
+    MeetingData:
+      type: object
+      required:
+        - startDate
+        - endData
+        - midweek
+        - weekend
+      properties:
+        startDate:
+          type: string
+          format: date
+          description: The start date of the meetings week
+          example: 2025-12-08
+        endDate:
+          type: string
+          format: date
+          description: The end date of the meetings week
+          example: 2025-12-14
+        midweek:
+          type: object
+          required:
+            - songs
+            - talkTitle
+            - bibleReadingDurationMinutes
+            - applyYourselfToTheFieldMinistry
+            - livingAsChristians
+          properties:
+            songs:
+              type: array
+              minItems: 3
+              maxItems: 3
+              items:
+                type: number
+                format: int64
+                description: The song number
+                example: 12
+            talkTitle:
+              type: string
+              description: The title of the first talk within the meeting
+              example: '1. “He Is the Stability of Your Times”'
+            bibleReadingDurationMinutes:
+              type: number
+              description: The talk duration in minutes
+              example: 4
+              format: int64
+            applyYourselfToTheFieldMinistry:
+              type: array
+              description: The composing parts of the section
+              items:
+                $ref: '#/components/schemas/MeetingPart'
+            livingAsChristians:
+              type: array
+              description: The composing parts of the section before the book study
+              items:
+                $ref: '#/components/schemas/MeetingPart'
+        weekend:
+          type: object
+          required:
+            - watchtowerTitle
+            - songs
+          properties:
+            watchtowerTitle:
+              type: string
+              description: The title of the watchtower study
+              example: '“You Are Someone Very Precious”!'
+            songs:
+              type: array
+              minItems: 2
+              maxItems: 2
+              items:
+                type: number
+                format: int64
+                description: The song number
+                example: 12
+  parameters:
+    month:
+      name: month
+      description: The month of the desired schedule, numeric, from 1-12
+      in: path
+      required: true
+      schema:
+        type: number
+        minimum: 1
+        maximum: 12
+    year:
+      name: year
+      description: The year of the desired schedule, numeric, 4 digits
+      in: path
+      required: true
+      schema:
+        type: number
+        minimum: 2016
+        maximum: 2999
+  responses:
+    Error:
+      description: Unexpected error ocourred whitin the server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    MeetingData:
+      description: Meeting schedule data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MeetingData'
+  securitySchemes:
+    functionKeyHeader:
+      type: 'apiKey'
+      in: 'header'
+      scheme: 'https'
+      name: 'X-Functions-Key'
+      description: The Azure Function Key to authenticate with the Functions App
+    functionKeyQuery:
+      type: 'apiKey'
+      in: 'query'
+      scheme: 'https'
+      name: 'code'
+      description: The Azure Function Key to authenticate with the Functions App

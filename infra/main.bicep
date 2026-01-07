@@ -1,8 +1,9 @@
-import { Location, SupportedLanguage } from 'util/types.bicep'
+import { Location } from 'util/types.bicep'
+import { SupportedLanguage } from 'util/lang.bicep'
 
 targetScope = 'subscription'
 
-param resourceGroupName string = 'JW-Pull'
+param resourceGroupName string = 'Meeting-Pull'
 param lang SupportedLanguage = 'en'
 param location Location = 'eastus'
 

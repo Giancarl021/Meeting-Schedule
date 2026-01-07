@@ -6,8 +6,14 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
+    "create-local-settings": "func settings decrypt && func settings add AzureWebJobsStorage \"UseDevelopmentStorage=true\" && func settings add WEBSITE_TIMEZONE \"UTC\" && func settings add FUNCTIONS_WORKER_RUNTIME \"node\" && func settings add AYF_TALK_KEY \"Talk\" && func settings add MONTH_MAP \"January,February,March,April,May,June,July,August,September,October,November,December\" && func settings add SEARCH_LANG \"en\"",
     "clean": "rimraf dist",
-    "prestart": "pnpm run clean && pnpm run build",
+    "infra:lint": "bicep lint infra/main.bicep",
+    "infra:format": "bicep format --pattern \"infra/**/*.bicep\"",
+    "preinfra:build": "tsx scripts/infra-prebuild.ts",
+    "infra:build": "bicep build --outdir dist/infra infra/main.bicep",
+    "postinfra:build": "tsx scripts/infra-postbuild.ts",
+    "prestart": "npm run clean && npm run build",
     "start": "func start",
     "test": "echo \"No tests yet...\""
   },
@@ -21,6 +27,7 @@
     "azure-functions-core-tools": "^4.x",
     "prettier": "^3.7.4",
     "rimraf": "^5.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   },
   "packageManager": "npm@11.7.0+sha512.c22099a6fff8d5b2286c2a09df5352b4858a7c0c716320f58989d60ad8b29ecf2ce6fdfe97ccb41c23ffb1272e1fa079f868487dd6b81d02a2a9e199c095a117"

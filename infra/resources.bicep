@@ -1,4 +1,5 @@
-import { Location, SupportedLanguage } from 'util/types.bicep'
+import { Location } from 'util/types.bicep'
+import { SupportedLanguage } from 'util/lang.bicep'
 import { constants } from 'util/constants.bicep'
 
 targetScope = 'resourceGroup'
@@ -8,19 +9,11 @@ param lang SupportedLanguage
 
 var resourceToken = toLower(uniqueString(resourceGroup().id, location))
 var functionAppDeploymentContainerName = 'FunctionDeployment'
+var langs = loadJsonContent('util/languages.json')
 
-var monthMaps = {
-  pt: 'Janeiro,Fevereiro,Março,Abril,Maio,Junho,Julho,Agosto,Setembro,Outubro,Novembro,Dezembro'
-  en: 'January,February,March,April,May,June,July,August,September,October,November,December'
-}
-
-var talkKeys = {
-  pt: 'Discurso'
-  en: 'Talk'
-}
-
-var monthMap = monthMaps[lang]
-var talkKey = talkKeys[lang]
+var monthMap = langs[lang].monthMap
+var talkKey = langs[lang].ayf_talk_key
+var searchLang = langs[lang].search_lang
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'law-${resourceToken}'
@@ -119,13 +112,13 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   resource configAppSettings 'config' = {
     name: 'appsettings'
     properties: {
-        AzureWebJobsStorage__accountName: storage.name
-        AzureWebJobsStorage__credential : 'managedidentity'
-        APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
-        SEARCH_LANG: lang
-        MONTH_MAP: monthMap
-        AYF_TALK_KEY: talkKey
-        WEBSITE_TIMEZONE: 'UTC'
+      AzureWebJobsStorage__accountName: storage.name
+      AzureWebJobsStorage__credential: 'managedidentity'
+      APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
+      SEARCH_LANG: searchLang
+      MONTH_MAP: monthMap
+      AYF_TALK_KEY: talkKey
+      WEBSITE_TIMEZONE: 'UTC'
     }
   }
 

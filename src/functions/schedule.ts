@@ -10,7 +10,7 @@ import DataTransformer, { type MeetingData } from '../services/DataTransformer';
 import ErrorResponse from '../util/ErrorResponse';
 import formatDate from '../util/formatDate';
 
-export async function month(
+export async function schedule(
     request: HttpRequest,
     context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -64,9 +64,9 @@ export async function month(
     };
 }
 
-app.http('month', {
+app.http('schedule', {
     methods: ['GET'],
-    authLevel: 'anonymous',
-    route: 'month/{year:int}/{month:int}',
-    handler: month
+    authLevel: 'function',
+    route: 'schedule/{year:int}/{month:int}',
+    handler: schedule
 });
