@@ -10,7 +10,7 @@ It is possible to run the project locally or deploy it to Azure.
 
 Following is an automated deployment link (based on [this Bicep files](infra)) for easy deployment:
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)]()
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FGiancarl021%2FMeeting-Schedule%2Freleases%2Flatest%2Fdownload%2Farm-template.json)
 
 The deployment will automatically create a resource group with all the necessary resources.
 
