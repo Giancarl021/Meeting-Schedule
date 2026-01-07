@@ -125,7 +125,7 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   resource srcDeployment 'sourcecontrols' = {
     name: 'web'
     properties: {
-      repoUrl: 'https://github.com/Giancarl021/JW-Pull.git'
+      repoUrl: 'https://github.com/Giancarl021/Meeting-Schedule.git'
       branch: 'master'
       isManualIntegration: true
       deploymentRollbackEnabled: true
