@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
+    "format": "prettier -w .",
     "create-local-settings": "func settings decrypt && func settings add AzureWebJobsStorage \"UseDevelopmentStorage=true\" && func settings add WEBSITE_TIMEZONE \"UTC\" && func settings add FUNCTIONS_WORKER_RUNTIME \"node\" && func settings add AYF_TALK_KEY \"Talk\" && func settings add MONTH_MAP \"January,February,March,April,May,June,July,August,September,October,November,December\" && func settings add SEARCH_LANG \"en\"",
     "clean": "rimraf dist",
     "infra:lint": "bicep lint infra/main.bicep",
@@ -15,7 +16,7 @@
     "postinfra:build": "tsx scripts/infra-postbuild.ts",
     "prestart": "npm run clean && npm run build",
     "start": "func start",
-    "test": "echo \"No tests yet...\""
+    "prepare": "husky install"
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/node": "22.x",
     "azure-functions-core-tools": "^4.x",
+    "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "rimraf": "^5.0.0",
     "tsx": "^4.21.0",

@@ -1,0 +1,7 @@
+npm run infra:build
+npm run infra:format
+
+npm run build
+npm run format
+
+git add .
