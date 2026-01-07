@@ -6,6 +6,6 @@ const BICEP_PATH = resolve(__dirname, '..', 'infra', 'util', 'lang.bicep');
 const BICEP_CONTENT = `
 @export()
 type SupportedLanguage = 'en'
-`.trim();
+`.trimStart();
 
 writeFileSync(BICEP_PATH, BICEP_CONTENT);

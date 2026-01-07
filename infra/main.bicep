@@ -3,7 +3,7 @@ import { SupportedLanguage } from 'util/lang.bicep'
 
 targetScope = 'subscription'
 
-param resourceGroupName string = 'Meeting-Pull'
+param resourceGroupName string = 'Meeting-Schedule'
 param lang SupportedLanguage = 'en'
 param location Location = 'eastus'
 
