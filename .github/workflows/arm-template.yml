@@ -1,0 +1,69 @@
+name: ARM Template Release
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'infra/**/*'
+
+jobs:
+  build:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: npm install
+      - name: Lint project
+        run: npm run infra:lint
+      - name: Build project
+        run: npm run infra:build
+      - name: Publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm-template
+          path: ./dist/infra/
+          if-no-files-found: error
+          overwrite: true
+  publish_release:
+    needs: build
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: arm-template
+          path: ./template
+          merge-multiple: true
+      - name: Create Tag Name
+        id: tag_name
+        run: echo "tag_name=$(date +'v%Y.%m.%d-%H.%M')" >> $GITHUB_ENV
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.tag_name }}
+          release_name: Release ${{ env.tag_name }}
+          body: Release of ARM Template on ${{ github.event.repository.updated_at }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./template/main.json
+          asset_name: 'arm-template.json'
+          asset_content_type: application/json
