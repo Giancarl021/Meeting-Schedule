@@ -43,8 +43,7 @@ The data pipeline is as follows:
 - `https://www.jw.org/en/library/magazines/?contentLanguageFilter={lang}&pubFilter=w&yearFilter={year}` for watchtower magazines
 
 3. For each HTML page returned, grab the `#pubsViewResults .syn-body.publication` elements and filter them by month (in full)
-
-- In the Watchtower Magazine case, the month is offset by -2 (for example: december -> october)
+  > In the Watchtower Magazine case, the month is offset by -2 (for example: december -> october)
 
 4. Get the `href` attribute of the `.fileLinks [title="Download"][data-preselect="jwpub"]` element on the filtered element
 5. Using the `href` attribute, fetch a download link map in JSON
