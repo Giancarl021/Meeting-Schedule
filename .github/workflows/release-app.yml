@@ -16,13 +16,15 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Install dependencies
         run: npm install
       - name: Lint project
         run: npm run infra:lint
       - name: Build project
-        run: npm run infra:build
+        run: |
+          npm run infra:build
+          npm run build
       - name: Create ZIP Package
         run: |
           mkdir -p dist-package
@@ -31,7 +33,7 @@ jobs:
           cp package.json dist-package/
           cp package-lock.json dist-package/
 
-          cp -r dist dist-package/
+          cp -r dist/src dist-package/src
           cp -r node_modules dist-package/
 
           cd dist-package
