@@ -25,11 +25,25 @@ jobs:
         run: npm run infra:build
       - name: Create ZIP Package
         run: |
-          npx azure-functions-core-tools pack --output dist
-          ZIP_FILENAME=$(basename $(find dist -name '*.zip'))
-          mv dist/$ZIP_FILENAME dist/app.zip
-          mv dist/infra/arm-template.json dist/arm-template.json
-          rm -rf dist/src dist/infra
+          mkdir -p dist-package
+
+          cp host.json dist-package/
+          cp package.json dist-package/
+          cp package-lock.json dist-package/
+
+          cp -r dist dist-package/
+          cp -r node_modules dist-package/
+
+          cd dist-package
+          zip -r ../app.zip .
+          cd ..
+
+          rm -rf dist-package
+
+          mv app.zip dist/
+          mv dist/infra/* dist/
+          rm -rf dist/src
+          rm -rf dist/infra
       - name: Publish artifact
         uses: actions/upload-artifact@v4
         with:
@@ -46,7 +60,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: packate
+          name: package
           path: ./package
           merge-multiple: true
       - name: Create Tag Name
