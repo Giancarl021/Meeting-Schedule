@@ -14,7 +14,7 @@ echo "============================================================"
 
 # Download artifact
 echo "==> Downloading artifact..."
-curl -L -o app.zip "$ARTIFACT_URL"
+wget "$ARTIFACT_URL" -O app.zip
 
 echo "==> Artifact contents: "
 unzip -l app.zip

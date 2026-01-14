@@ -117,7 +117,7 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
       }
       runtime: {
         name: 'node'
-        version: '22'
+        version: '20'
       }
     }
   }
@@ -130,6 +130,7 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
       AzureWebJobsStorage__clientId: userAssignedIdentity.properties.clientId
       APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
       APPLICATIONINSIGHTS_AUTHENTICATION_STRING: 'ClientId=${userAssignedIdentity.properties.clientId};Authorization=AAD'
+      FUNCTIONS_WORKER_RUNTIME: 'node'
       SEARCH_LANG: searchLang
       MONTH_MAP: monthMap
       AYF_TALK_KEY: talkKey
