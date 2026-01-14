@@ -12,7 +12,7 @@
     "infra:lint": "bicep lint infra/main.bicep",
     "infra:format": "bicep format --pattern \"infra/**/*.bicep\"",
     "preinfra:build": "tsx scripts/infra-prebuild.ts",
-    "infra:build": "bicep build --outdir dist/infra infra/main.bicep",
+    "infra:build": "bicep build --outfile dist/infra/arm-template.json infra/main.bicep",
     "postinfra:build": "tsx scripts/infra-postbuild.ts",
     "prestart": "npm run clean && npm run build",
     "start": "func start",

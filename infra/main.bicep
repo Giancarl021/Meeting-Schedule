@@ -1,11 +1,11 @@
-import { Location } from 'util/types.bicep'
 import { SupportedLanguage } from 'util/lang.bicep'
 
 targetScope = 'subscription'
 
 param resourceGroupName string = 'Meeting-Schedule'
 param lang SupportedLanguage = 'en'
-param location Location = 'eastus'
+
+var location = deployment().location
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: resourceGroupName
@@ -20,3 +20,7 @@ module resources 'resources.bicep' = {
     lang: lang
   }
 }
+
+output apiUrl string = resources.outputs.apiUrl
+@secure()
+output apiKey string = resources.outputs.apiKey

@@ -1,11 +1,9 @@
-name: ARM Template Release
+name: Release App
 
 on:
   push:
     branches:
       - master
-    paths:
-      - 'infra/**/*'
 
 jobs:
   build:
@@ -25,11 +23,18 @@ jobs:
         run: npm run infra:lint
       - name: Build project
         run: npm run infra:build
+      - name: Create ZIP Package
+        run: |
+          npx azure-functions-core-tools pack --output dist
+          ZIP_FILENAME=$(basename $(find dist -name '*.zip'))
+          mv dist/$ZIP_FILENAME dist/app.zip
+          mv dist/infra/arm-template.json dist/arm-template.json
+          rm -rf dist/src dist/infra
       - name: Publish artifact
         uses: actions/upload-artifact@v4
         with:
-          name: arm-template
-          path: ./dist/infra/
+          name: package
+          path: ./dist/
           if-no-files-found: error
           overwrite: true
   publish_release:
@@ -41,8 +46,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: arm-template
-          path: ./template
+          name: packate
+          path: ./package
           merge-multiple: true
       - name: Create Tag Name
         id: tag_name
@@ -58,12 +63,21 @@ jobs:
           body: Release of ARM Template on ${{ github.event.repository.updated_at }}
           draft: false
           prerelease: false
-      - name: Upload Release Asset
+      - name: Upload ARM Template
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./template/main.json
+          asset_path: ./package/arm-template.json
           asset_name: 'arm-template.json'
           asset_content_type: application/json
+      - name: Upload App package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./package/app.zip
+          asset_name: 'app.zip'
+          asset_content_type: application/zip

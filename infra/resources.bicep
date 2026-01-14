@@ -1,19 +1,24 @@
-import { Location } from 'util/types.bicep'
 import { SupportedLanguage } from 'util/lang.bicep'
 import { constants } from 'util/constants.bicep'
 
 targetScope = 'resourceGroup'
 
-param location Location
+param location string
 param lang SupportedLanguage
 
 var resourceToken = toLower(uniqueString(resourceGroup().id, location))
-var functionAppDeploymentContainerName = 'FunctionDeployment'
+var functionAppDeploymentContainerName = 'app-package-${take(appName, 32)}-${take(resourceToken, 7)}'
+var appName = 'func-${resourceToken}'
 var langs = loadJsonContent('util/languages.json')
 
 var monthMap = langs[lang].monthMap
 var talkKey = langs[lang].ayf_talk_key
 var searchLang = langs[lang].search_lang
+
+resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'uai-data-manager-${resourceToken}'
+  location: location
+}
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'law-${resourceToken}'
@@ -80,11 +85,14 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
 }
 
 resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
-  name: 'fn-${resourceToken}'
+  name: appName
   location: location
   kind: 'functionapp,linux'
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentity.id}': {}
+    }
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -98,13 +106,18 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
           type: 'blobContainer'
           value: '${storage.properties.primaryEndpoints.blob}${functionAppDeploymentContainerName}'
           authentication: {
-            type: 'SystemAssignedIdentity'
+            type: 'UserAssignedIdentity'
+            userAssignedIdentityResourceId: userAssignedIdentity.id
           }
         }
       }
+      scaleAndConcurrency: {
+        maximumInstanceCount: 100
+        instanceMemoryMB: 2048
+      }
       runtime: {
-        name: constants.functionApp.runtime
-        version: constants.functionApp.version
+        name: 'node'
+        version: '22'
       }
     }
   }
@@ -114,21 +127,119 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
     properties: {
       AzureWebJobsStorage__accountName: storage.name
       AzureWebJobsStorage__credential: 'managedidentity'
+      AzureWebJobsStorage__clientId: userAssignedIdentity.properties.clientId
       APPINSIGHTS_INSTRUMENTATIONKEY: applicationInsights.properties.InstrumentationKey
+      APPLICATIONINSIGHTS_AUTHENTICATION_STRING: 'ClientId=${userAssignedIdentity.properties.clientId};Authorization=AAD'
       SEARCH_LANG: searchLang
       MONTH_MAP: monthMap
       AYF_TALK_KEY: talkKey
       WEBSITE_TIMEZONE: 'UTC'
     }
   }
+}
 
-  resource srcDeployment 'sourcecontrols' = {
-    name: 'web'
-    properties: {
-      repoUrl: 'https://github.com/Giancarl021/Meeting-Schedule.git'
-      branch: 'master'
-      isManualIntegration: true
-      deploymentRollbackEnabled: true
+resource deployScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+  name: 'deploy-function-code'
+  location: location
+  kind: 'AzureCLI'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${userAssignedIdentity.id}': {}
     }
   }
+  properties: {
+    azCliVersion: '2.57.0'
+    timeout: 'PT20M'
+    cleanupPreference: 'OnSuccess'
+    retentionInterval: 'P1D'
+    scriptContent: loadTextContent('scripts/upload-app.sh')
+    environmentVariables: [
+      {
+        name: 'ARTIFACT_URL'
+        value: constants.artifactUrl
+      }
+      {
+        name: 'STORAGE_ACCOUNT_NAME'
+        value: storage.name
+      }
+      {
+        name: 'STORAGE_ACCOUNT_CONTAINER'
+        value: functionAppDeploymentContainerName
+      }
+    ]
+  }
+  dependsOn: [
+    functionApp
+    roleAssignmentBlobDataOwner
+  ]
 }
+
+resource roleAssignmentBlobDataOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, storage.id, userAssignedIdentity.id, 'Storage Blob Data Owner')
+  scope: storage
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      constants.roles.storageBlobDataOwnerRoleId
+    )
+    principalId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource roleAssignmentBlob 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, storage.id, userAssignedIdentity.id, 'Storage Blob Data Contributor')
+  scope: storage
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      constants.roles.storageBlobDataContributorRoleId
+    )
+    principalId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource roleAssignmentQueueStorage 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, storage.id, userAssignedIdentity.id, 'Storage Queue Data Contributor')
+  scope: storage
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      constants.roles.storageQueueDataContributorId
+    )
+    principalId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource roleAssignmentTableStorage 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, storage.id, userAssignedIdentity.id, 'Storage Table Data Contributor')
+  scope: storage
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      constants.roles.storageTableDataContributorId
+    )
+    principalId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource roleAssignmentAppInsights 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(subscription().id, applicationInsights.id, userAssignedIdentity.id, 'Monitoring Metrics Publisher')
+  scope: applicationInsights
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      constants.roles.monitoringMetricsPublisherId
+    )
+    principalId: userAssignedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+output apiUrl string = functionApp.properties.defaultHostName
+@secure()
+output apiKey string = functionApp.listKeys().functionKeys.default

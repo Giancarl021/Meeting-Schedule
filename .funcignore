@@ -2,6 +2,8 @@
 *.ts
 .git*
 .vscode
+infra/
+scripts/
 local.settings.json
 test
 getting_started.md
